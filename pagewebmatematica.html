@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Verificador de PIN</title>
+<style>
+  :root{
+    --bg:#0f1724;
+    --card:#0b1220;
+    --accent:#10b981;
+    --danger:#ef4444;
+    --muted:#94a3b8;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#041022 0%, #081428 100%);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box}
+  .card{
+    width:100%;max-width:420px;background:rgba(255,255,255,0.03);padding:26px;border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,0.6);text-align:center;color:#e6eef8;
+    border:1px solid rgba(255,255,255,0.04)
+  }
+  h1{margin:0 0 10px;font-size:20px;letter-spacing:0.2px}
+  p.sub{margin:0 0 18px;color:var(--muted);font-size:14px}
+  .pin-row{display:flex;gap:12px;justify-content:center;margin-bottom:18px}
+  input.pin{
+    width:64%;max-width:220px;padding:14px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);
+    color:inherit;font-size:20px;text-align:center;outline:none;box-sizing:border-box;
+  }
+  input.pin:focus{box-shadow:0 0 0 4px rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.18)}
+  button{padding:12px 14px;border-radius:10px;border:0;background:rgba(255,255,255,0.04);color:inherit;font-weight:600;cursor:pointer}
+  .result{
+    height:120px;display:flex;align-items:center;justify-content:center;font-size:72px;margin-top:6px;transition:all .22s ease;
+  }
+  .ok{color:var(--accent);transform:scale(1);opacity:1}
+  .bad{color:var(--danger);transform:scale(1);opacity:1}
+  .hidden{opacity:0;transform:scale(.9);pointer-events:none}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px}
+  footer{font-size:12px;color:var(--muted);margin-top:14px}
+  /* small screens tweak */
+  @media (max-width:420px){
+    input.pin{width:58%}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="region" aria-label="Verificador de PIN">
+      <h1>Introduce el PIN</h1>
+      <p class="sub">Escribe el código de 4 dígitos. Si es correcto aparecerá ✅, si no, ❌.</p>
+
+      <div class="pin-row">
+        <input
+          id="pinInput"
+          class="pin"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="6"
+          autocomplete="one-time-code"
+          placeholder="••••"
+          aria-label="Campo PIN"
+        />
+        <button id="checkBtn" aria-label="Comprobar PIN">Comprobar</button>
+      </div>
+
+      <div id="result" class="result hidden" aria-live="polite"></div>
+      <div id="hint" class="hint">PIN esperado: 4 dígitos.</div>
+
+      <footer>Guardá este archivo como <code>pin.html</code> y abrilo en tu navegador móvil.</footer>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const CORRECT = "3468"; // PIN correcto
+  const pinInput = document.getElementById('pinInput');
+  const checkBtn = document.getElementById('checkBtn');
+  const result = document.getElementById('result');
+  const hint = document.getElementById('hint');
+
+  function showOutcome(ok){
+    result.classList.remove('hidden');
+    if(ok){
+      result.textContent = "✅";
+      result.classList.remove('bad'); result.classList.add('ok');
+      hint.textContent = "PIN correcto.";
+    } else {
+      result.textContent = "❌";
+      result.classList.remove('ok'); result.classList.add('bad');
+      hint.textContent = "PIN incorrecto. Intentá de nuevo.";
+    }
+  }
+
+  function clearOutcome(){
+    result.classList.add('hidden');
+    result.textContent = "";
+    result.classList.remove('ok','bad');
+    hint.textContent = "PIN esperado: 4 dígitos.";
+  }
+
+  function checkPin(){
+    const val = (pinInput.value || "").trim();
+    if(val.length === 0){ clearOutcome(); return; }
+    // comparar exactamente, ignorar espacios
+    if(val === CORRECT) showOutcome(true);
+    else showOutcome(false);
+  }
+
+  // comprobar al presionar botón
+  checkBtn.addEventListener('click', checkPin);
+
+  // comprobar al escribir (feedback instantáneo)
+  pinInput.addEventListener('input', () => {
+    // si se completó 4 caracteres se verifica automáticamente
+    if(pinInput.value.length >= CORRECT.length){
+      checkPin();
+    } else {
+      clearOutcome();
+    }
+  });
+
+  // permitir Enter para comprobar
+  pinInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') { e.preventDefault(); checkPin(); }
+  });
+
+  // al cargar, enfocar input
+  window.addEventListener('load', () => pinInput.focus());
+})();
+</script>
+</body>
+</html>
